@@ -5,9 +5,9 @@ function [Pveg,A]=CAmodel(Vw,theta,beta,delta,Sveg,E,AM)
 % elevation. Total spreading rate
 % beta=beta_base*beta_veg*beta_wind*beta_elevation, based on the CA models
 % presented by:
-% I. Karafyllidis and A. Thanailakis, “A model for predicting forest fire spreading using cellular automata,” 1997
-% A. Alexandridis, D. Vakalis, C. I. Siettos, and G. V. Bafas, “A cellular
-% automata model for forest fire spread prediction: The case of the wildfire that swept through Spetses Island in 1990,” 2008.
+% I. Karafyllidis and A. Thanailakis, â€œA model for predicting forest fire spreading using cellular automata,â€ 1997
+% A. Alexandridis, D. Vakalis, C. I. Siettos, and G. V. Bafas, â€œA cellular
+% automata model for forest fire spread prediction: The case of the wildfire that swept through Spetses Island in 1990,â€ 2008.
 %
 % Inputs:
 % - Vw (wind speed (m/s))
