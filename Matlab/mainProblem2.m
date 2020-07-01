@@ -1,7 +1,8 @@
 %MAINPROBLEM2 main file to solve problem 2 with resource allocation on beta only 
 % This matlab code solves Problem 2 (Risk-Constrained Resource
 % Minimization) as defined in:
-% https://arxiv.org/abs/2003.07555
+% https://arxiv.org/abs/2003.07555 (early version)
+% https://ieeexplore.ieee.org/document/9120170 (early access)
 %
 % Inputs:
 % - csv files containing vegetation, cost, likelihood and elevation
@@ -16,14 +17,14 @@
 % - resource allocation map
 % - risk map
 
-% Vera Somers, March 2020
+% Vera Somers, June 2020, V2.0
 
 clear all 
 close all
 
 %load csv files
 Sveg=csvread('Vegetation.csv');
-C=csvread('Cost.csv');
+C=csvread('Cost2.csv');
 C=C(:)';
 Slike=csvread('Likelihood.csv');
 E=csvread('Elevation.csv');
@@ -37,16 +38,16 @@ Lambda=Slike(:); %likelihood
 %decision variables
 Vw=4; %wind speed (m/s)
 theta= 225; %wind direction (degrees)
-delta=0.2; %recovery rate
+delta=0.5; %recovery rate
 beta=0.5; %infection rate base line
-Gamma=log(0.08); % risk threshold
-dr = 3.4; %discount rate
-betaL=1E-4; %lower bound on beta
+Gamma=log(0.044969971250226); % risk threshold 0.039646519498297
+dr = 3.1; %discount rate
+betaL=1E-8; %lower bound on beta
+
 
 %obtain state matrix 
 AM=adjacencymatrix(rows,cols);
 [Pveg,A]=CAmodel(Vw,theta,beta,delta,Sveg,E,AM);
-
 
 %convex optimization
 
@@ -61,7 +62,7 @@ rij=sparse(o,u,rS,m,v);
 
 
 Atest=A+delta*eye(n); %spreading rates only
-Beta=Atest';
+Beta=sparse(Atest');
 
 p0=(C/(dr*eye(n)-A'))'; %node impact vector or priority vector
 
@@ -79,10 +80,11 @@ end
 
 optimize(Constraints,sum(sum(rij)),sdpsettings('debug',1,'convertconvexquad',0))
 
-KK=double(rij);
 
-%Reweighted L1 optimization
-%[KK]=L1Problem2(rij,Constraints);
+% %Reweighted L1 optimization
+% [rij]=L1Problem2(rij,Constraints);
+
+KK=1-exp(-double(rij));
 
 %plot results
 Plotting(Sveg,Slike,p0,KK)

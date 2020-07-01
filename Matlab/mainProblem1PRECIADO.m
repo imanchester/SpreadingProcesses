@@ -17,14 +17,14 @@
 % - resource allocation map
 % - risk map
 
-% Vera Somers, March 2020
+% Vera Somers, June 2020, V2.0
 
 clear all 
 close all
 
 %load csv files
 Sveg=csvread('Vegetation.csv');
-C=csvread('Cost.csv');
+C=csvread('Cost2.csv');
 C=C(:)';
 Slike=csvread('Likelihood.csv');
 E=csvread('Elevation.csv');
@@ -37,16 +37,15 @@ n=rows*cols; %define number of nodes in graph
 %decision variables
 Vw=4; %wind speed (m/s)
 theta= 225; %wind direction (degrees)
-delta=0.2; %recovery rate
+delta=0.5; %recovery rate
 beta=0.5; %infection rate base line
-Gamma=25; % budget
-dr = 3.5; %discount rate
-betaL=1E-4; %lower bound on beta
+Gamma=200; % budget
+dr = 3.1; %discount rate
+betaL=1E-8; %lower bound on beta
 
 %obtain state matrix 
 AM=adjacencymatrix(rows,cols);
 [Pveg,A]=CAmodel(Vw,theta,beta,delta,Sveg,E,AM);
-
 
 %convex optimization
 
@@ -62,7 +61,7 @@ Spec=sdpvar(1,1); % spectral radius/dominant eigenvalue
 
 
 Atest=A+delta*eye(n); %spreading rates only
-Beta=Atest';
+Beta=sparse(Atest');
 
 p0=(C/(dr*eye(n)-A'))'; %node impact vector or priority vector
 
@@ -80,7 +79,8 @@ end
 
 optimize(Constraints,Spec,sdpsettings('debug',1,'convertconvexquad',0))
 
-KK=double(rij);
+%KK=double(rij);
+KK=1-exp(-double(rij));
 
 %plot results
 Plotting(Sveg,Slike,p0,KK)

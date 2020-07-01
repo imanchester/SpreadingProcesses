@@ -1,4 +1,4 @@
-function Plotting(Sveg,Slike,p0,KK,DD)
+function [G]=Plotting_I(Sveg,Slike,p0,KK,DD)
 %PLOTTING risk map and resource allocation map 
 % This function creates two figures; a resource allocation map and risk map
 % based on the given spreading process and optimization problem
@@ -15,11 +15,11 @@ function Plotting(Sveg,Slike,p0,KK,DD)
 % - figure (2) risk map
 % - (optional) figure (3) node resource allocation map
 
-% Vera Somers, March 2020
+% Vera Somers, June 2020, V2.0
 
 
-%set up to invoke latex compatibility
-set(0,'defaulttextinterpreter','latex')
+%set up to invoke tex compatibility for inkscape
+set(0,'defaulttextinterpreter','tex')
 set(0,'defaultAxesFontSize',12)
 
 %initializing parameters
@@ -34,12 +34,12 @@ cmap=colourmap(3);
 
 
 %set up resource allocation matrix for plotting
-NewK=(KK+KK')-eye(size(KK,1)).*diag(KK);
+NewK=max(KK,KK')-eye(size(KK,1)).*diag(KK);
 
 
 for k1=1:n
     for k2=1:n
-        if abs(NewK(k1,k2))<1E-6
+        if abs(NewK(k1,k2))<5E-5    
            NewK(k1,k2)=0;
         elseif NewK(k1,k2)>1
            NewK(k1,k2)=1;
@@ -65,12 +65,12 @@ r.LineWidth = 2;
 r.EdgeCData=G.Edges.Weight; 
 c=colorbar;
 c.Label.String = 'Resource allocation';
-c.Label.Interpreter='latex';
-c.TickLabelInterpreter='latex';
+c.Label.Interpreter='tex';
+c.TickLabelInterpreter='tex';
 c.Label.FontSize=12;
 caxis([0 1])
 r.MarkerSize=0.1;   
-r.NodeCData =ones(1,1000);
+r.NodeCData =ones(1,n);
 r.XData=rX;
 r.YData=fliplr(rY); 
 t.XData=rX;
@@ -118,8 +118,8 @@ figure(2);
 imshow(pp,'InitialMagnification','fit','Colormap',cmap2)
 c=colorbar;
 c.Label.String = 'Risk';
-c.Label.Interpreter='latex';
-c.TickLabelInterpreter='latex';
+% c.Label.Interpreter='latex';
+% c.TickLabelInterpreter='latex';
 c.Label.FontSize=12;
 
 ax = gca;
@@ -144,8 +144,8 @@ if exist('DD','var')==1
     imshow(vijS,'InitialMagnification','fit','Colormap',cmap2)
     c=colorbar;
     c.Label.String = 'Resource Allocation';
-    c.Label.Interpreter='latex';
-    c.TickLabelInterpreter='latex';
+%     c.Label.Interpreter='latex';
+%     c.TickLabelInterpreter='latex';
     c.Label.FontSize=12;
     
     ax = gca;

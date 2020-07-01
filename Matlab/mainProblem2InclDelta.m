@@ -2,7 +2,8 @@
 %beta and delta
 % This matlab code solves Problem 2 (Risk-Constrained Resource
 % Minimization) as defined in:
-% https://arxiv.org/abs/2003.07555
+% https://arxiv.org/abs/2003.07555 (early version)
+% https://ieeexplore.ieee.org/document/9120170 (early access)
 %
 % Inputs:
 % - csv files containing vegetation, cost, likelihood and elevation
@@ -17,14 +18,14 @@
 % - resource allocation map
 % - risk map
 
-% Vera Somers, March 2020
+% Vera Somers, June 2020, V2.0
 
 clear all 
 close all
 
 %load csv files
 Sveg=csvread('Vegetation.csv');
-C=csvread('Cost.csv');
+C=csvread('Cost2.csv');
 C=C(:)';
 Slike=csvread('Likelihood.csv');
 E=csvread('Elevation.csv');
@@ -41,7 +42,7 @@ theta= 225; %wind direction (degrees)
 delta=0.2; %recovery rate
 beta=0.5; %infection rate base line
 Gamma=log(0.05); % risk threshold
-dr = 3.4; %discount rate
+dr = 3.3; %discount rate
 betaL=1E-4; %lower bound on beta >0
 deltaH=0.9; %upper bound on delta <1
 
@@ -66,7 +67,7 @@ vij=sdpvar(n,1);
 
 
 Atest=A+delta*eye(n); %spreading rates only
-Beta=Atest';
+Beta=sparse(Atest');
 
 p0=(C/(dr*eye(n)-A'))'; %node impact vector or priority vector
 

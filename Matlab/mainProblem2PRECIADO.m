@@ -18,14 +18,14 @@
 % - resource allocation map
 % - risk map
 
-% Vera Somers, March 2020
+% Vera Somers, June 2020, V2.0
 
 clear all 
 close all
 
 %load csv files
 Sveg=csvread('Vegetation.csv');
-C=csvread('Cost.csv');
+C=csvread('Cost2.csv');
 C=C(:)';
 Slike=csvread('Likelihood.csv');
 E=csvread('Elevation.csv');
@@ -39,17 +39,19 @@ Lambda=Slike(:); %likelihood
 %decision variables
 Vw=4; %wind speed (m/s)
 theta= 225; %wind direction (degrees)
-delta=0.2; %recovery rate
+delta=0.5; %recovery rate
 beta=0.5; %infection rate base line
-Gamma=0.0516; % risk threshold
-dr = 3.5; %discount rate
-betaL=1E-4; %lower bound on beta
+Gamma=0.0449599; % risk threshold   
+dr = 3.1; %discount rate
+betaL=1E-8; %lower bound on beta
 
 
 %obtain state matrix 
 AM=adjacencymatrix(rows,cols);
 [Pveg,A]=CAmodel(Vw,theta,beta,delta,Sveg,E,AM);
 
+Atest=A+delta*eye(n); %spreading rates only
+Beta=sparse(Atest');
 
 %convex optimization
 
@@ -57,20 +59,24 @@ AM=adjacencymatrix(rows,cols);
 p=sdpvar(n,1);
 tempAM=(Pveg.*AM)';
 [o,u,s] = find(tempAM);
+[o2,u2,s2] = find(Beta);
 ss=length(s);
 [m,v] = size(tempAM);
 betaS=sdpvar(ss,1);
-BetaN=sparse(o,u,betaS,m,v);
-
+BetaN=sparse(o,u,betaS,m,v); 
+idx = sub2ind(size(Beta), o, u);
+idx2 = sub2ind(size(Beta), o2, u2);
+idx3=setdiff(idx2,idx);
+BetaN(idx3)=Beta(idx3);
 
 Atest=A+delta*eye(n); %spreading rates only
-Beta=Atest';
+Beta=sparse(Atest');
 
 p0=(C/(dr*eye(n)-A'))'; %node impact vector or priority vector
 
+betaH=Beta(idx);
+betaH=nonzeros(betaH(:));
 
-betaH=nonzeros(Beta(:)); %upperbound on spreading rate
-betaMax=max(Beta(:));
 
 %exponentional cone programming
 Constraints= [p>=0,betaS>=betaL,BetaN<=Beta,max(Lambda.*p)<=Gamma];
@@ -79,10 +85,10 @@ for j=1:n
     Constraints=[Constraints,sum(p.*BetaN(:,j))/(p(j)*delta) - dr/delta + C(j)/(p(j)*delta) <=1];
 end
 
-optimize(Constraints,sum((1-betaS(:)./betaH(:))./(betaS(:)/betaL - betaS(:)/betaMax)),sdpsettings('solver','mosek-geometric','debug',1,'convertconvexquad',0))
+optimize(Constraints,sum((1-betaS(:)./betaH(:))./(betaS(:)/betaL - betaS(:)./betaH(:))),sdpsettings('solver','mosek-geometric','debug',1,'convertconvexquad',0))
 
-KK=-log(double(BetaN)./Beta);
 
+KK=1-double(BetaN)./Beta;
 KK(isinf(KK)|isnan(KK))=0;
 
 %plot results

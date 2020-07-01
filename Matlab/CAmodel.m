@@ -5,9 +5,9 @@ function [Pveg,A]=CAmodel(Vw,theta,beta,delta,Sveg,E,AM)
 % elevation. Total spreading rate
 % beta=beta_base*beta_veg*beta_wind*beta_elevation, based on the CA models
 % presented by:
-% I. Karafyllidis and A. Thanailakis, ‚ÄúA model for predicting forest fire spreading using cellular automata,‚Äù 1997
-% A. Alexandridis, D. Vakalis, C. I. Siettos, and G. V. Bafas, ‚ÄúA cellular
-% automata model for forest fire spread prediction: The case of the wildfire that swept through Spetses Island in 1990,‚Äù 2008.
+% I. Karafyllidis and A. Thanailakis, ìA model for predicting forest fire spreading using cellular automata,î 1997
+% A. Alexandridis, D. Vakalis, C. I. Siettos, and G. V. Bafas, ìA cellular
+% automata model for forest fire spread prediction: The case of the wildfire that swept through Spetses Island in 1990,î 2008.
 %
 % Inputs:
 % - Vw (wind speed (m/s))
@@ -23,7 +23,7 @@ function [Pveg,A]=CAmodel(Vw,theta,beta,delta,Sveg,E,AM)
 % - Pveg (spreading rate correction based on vegetation)
 % - A (state matrix)
 
-% Vera Somers, March 2020
+% Vera Somers, June 2020, V2.0 (updated city spreading)
 
 %parameter set-up, following cited papers
 c1=0.045;
@@ -43,16 +43,27 @@ for i1=1:rows
         elseif Sveg(i1,j1)==3
            Pveg(i1,j1)=0.1;
         elseif Sveg(i1,j1)==4
-            Pveg(i1,j1)=0;  %.5/0;
+            Pveg(i1,j1)=0.5;  
         elseif Sveg(i1,j1)==5
             Pveg(i1,j1)=0;
         end
     end
 end
 
+Pvegtemp=Pveg; %to correct resource allocation city in mainProblem (new in V2.0)
+
+for i1=1:rows
+    for j1=1:cols
+        if Sveg(i1,j1)==4
+           Pvegtemp(i1,j1)=0;  
+        end
+    end
+end
 
 Pveg=Pveg(:);   
 Pveg=repmat(Pveg,1,n);
+Pvegtemp=Pvegtemp(:);
+Pvegtemp=repmat(Pvegtemp,1,n);
 
 
 E=E(:);
@@ -93,6 +104,10 @@ if Vw==0 %no wind
 else
     A=(-delta*eye(n)+PW.*AM);
 end
+
+
+Pveg=Pvegtemp;
+
 
 end
 
